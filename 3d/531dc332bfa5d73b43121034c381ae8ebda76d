@@ -1,0 +1,45 @@
+api/package-lock.json
+  s_7f10b9cf9797ec::t_57dc7501cebedf 1-5650
+api/package.json
+  s_7f10b9cf9797ec::t_6e9c85678f46fa 1-41
+package-lock.json
+  s_6fd68b6d2fd09e::t_e723ddf20b1d63 1-15
+README.md
+  s_7f10b9cf9797ec::t_9a09e074504590 1-44
+api/.sequelizerc
+  s_7f10b9cf9797ec::t_b0c44e37f6937c 1-6
+api/database/config.cjs
+  s_7f10b9cf9797ec::t_1ccefb3ae4a180 1-17
+api/database/migrations/20261124000000-enable-pgvector.js
+  s_7f10b9cf9797ec::t_4849b619bc6b80 1-11
+api/src/app.module.ts
+  s_6fd68b6d2fd09e::t_7757bb7a6317fa 1-12
+api/src/modules/database/database.module.ts
+  s_6fd68b6d2fd09e::t_1d7e20a465d2af 1-16
+api/tsconfig.json
+  s_6fd68b6d2fd09e::t_20ae6610b2416d 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "3d531dc332bfa5d73b43121034c381ae8ebda76d",
+  "prompts": {},
+  "sessions": {
+    "s_6fd68b6d2fd09e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20cea-ce9a-74a1-9714-69744753ba13",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    },
+    "s_7f10b9cf9797ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20cd7-0535-7631-847b-225cdd3177cc",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    }
+  }
+}
