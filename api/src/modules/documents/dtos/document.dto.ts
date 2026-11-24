@@ -59,3 +59,21 @@ export class SearchChunksDto {
   @Max(50)
   limit = 5;
 }
+
+export class AskDocumentDto {
+  @Transform(trim)
+  @IsString()
+  @MinLength(1)
+  @MaxLength(2000)
+  question!: string;
+
+  @IsOptional()
+  @IsUUID()
+  document_id?: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  limit = 5;
+}

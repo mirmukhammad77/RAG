@@ -41,7 +41,7 @@ Root commands:
 | `npm run migration:run:api` | Run database migrations |
 | `npm run migration:status:api` | Show migration status |
 
-The backend accepts PDF uploads and direct PDF links without authentication, extracts page-aware passages, embeds them locally with MiniLM, and stores them in PostgreSQL with pgvector. It provides book browsing and semantic passage search. MiniLM downloads on first use and is cached locally; no embedding API key is required.
+The backend accepts PDF uploads and direct PDF links without authentication, extracts page-aware passages, embeds them locally with MiniLM, and stores them in PostgreSQL with pgvector. It provides book browsing, semantic passage search, and Gemini answers with source citations through `POST /documents/ask`. Use `POST /documents/ask/stream` to receive textbook chunks immediately after retrieval and stream the AI answer as it arrives. Gemini failures preserve the retrieved chunks. MiniLM downloads on first use and is cached locally; no embedding API key is required. For answer generation, set `GEMINI_API_KEY` in `api/.env`; the default model is `gemini-3.1-flash-lite`. See the [question-answering setup and request example](api/README.md#gemini-question-answering).
 
 The root `build` and `typecheck` commands currently target the API. See [api/README.md](api/README.md) for the API endpoints, data model, import limits, backend structure, and migration workflow.
 

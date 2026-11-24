@@ -5,6 +5,28 @@ const { test } = require('node:test');
 const { ConfigService } = require('@nestjs/config');
 const { EmbeddingsService } = require('../dist/modules/documents/services/embeddings.service');
 const { ChunkingService } = require('../dist/modules/documents/services/chunking.service');
+const { GeminiService } = require('../dist/modules/documents/services/gemini.service');
+
+test('real Gemini answers from a textbook passage with a valid source reference', {
+  skip: process.env.RUN_GEMINI_TESTS !== '1', timeout: 130_000,
+}, async () => {
+  assert.ok(process.env.GEMINI_API_KEY, 'Set GEMINI_API_KEY before enabling RUN_GEMINI_TESTS');
+  const gemini = new GeminiService(new ConfigService({
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-3.1-flash-lite',
+    GEMINI_TIMEOUT_MS: Number(process.env.GEMINI_TIMEOUT_MS || 30000),
+  }));
+  const result = await gemini.answer('How does DNA store genetic information?', [{
+    id: 'b05e2d2f-6ec1-4cc2-b591-44134d6c2c11', document_id: 'a05e2d2f-6ec1-4cc2-b591-44134d6c2c11',
+    position: 0, title: 'Biology', edition: null, source_url: null, heading_path: ['DNA'],
+    page_start: 12, page_end: 12, content: 'DNA stores genetic information in its sequence of nucleotide bases.', similarity: 1,
+  }]);
+  assert.equal(result.answerable, true);
+  assert.match(result.answer, /\[1\]/);
+  assert.equal(result.sources.length, 1);
+  assert.deepEqual(result.sources[0].heading_path, ['DNA']);
+  assert.equal(result.sources[0].page_start, 12);
+});
 
 test('real MiniLM produces normalized 384-dimensional vectors and tokenizer-safe chunks', {
   skip: process.env.RUN_MODEL_TESTS !== '1', timeout: 240_000,

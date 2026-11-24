@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import type {} from 'multer';
 import { MAX_CHUNKS } from '../documents.constants';
-import { ImportDocumentDto, ImportUrlDto, PaginationDto, SearchChunksDto } from '../dtos/document.dto';
+import { AskDocumentDto, ImportDocumentDto, ImportUrlDto, PaginationDto, SearchChunksDto } from '../dtos/document.dto';
 import { DocumentsRepository } from '../repositories/documents.repository';
 import { ChunkingService } from './chunking.service';
 import { EmbeddingsService } from './embeddings.service';
+import { GeminiService } from './gemini.service';
+import type { RetrievedPassage } from './gemini.service';
+import { GeminiStreamingService } from './gemini-streaming.service';
+import { retrievalFallback } from './answer-fallback';
 import { PdfDownloadService } from './pdf-download.service';
 import { PdfExtractionService } from './pdf-extraction.service';
 
@@ -17,6 +22,8 @@ export class DocumentsService {
     private readonly chunking: ChunkingService,
     private readonly embeddings: EmbeddingsService,
     private readonly download: PdfDownloadService,
+    private readonly gemini: GeminiService,
+    private readonly streaming: GeminiStreamingService,
   ) {}
 
   async upload(file: Express.Multer.File | undefined, input: ImportDocumentDto) {
@@ -66,5 +73,24 @@ export class DocumentsService {
     if (countTokens(input.query) > 254) throw new BadRequestException('Search query must fit within 254 MiniLM tokens.');
     const [embedding] = await this.embeddings.embed([input.query]);
     return this.repository.search(embedding, input);
+  }
+
+  async ask(input: AskDocumentDto) {
+    const passages = await this.prepareQuestion(input);
+    try {
+      return await this.gemini.answer(input.question, passages);
+    } catch (error) {
+      if (!(error instanceof HttpException) || ![429, 502, 503, 504].includes(error.getStatus())) throw error;
+      return retrievalFallback(input.question, this.gemini.model, passages, error);
+    }
+  }
+
+  async prepareQuestion(input: AskDocumentDto) {
+    this.gemini.assertConfigured();
+    return this.search({ query: input.question, document_id: input.document_id, limit: input.limit });
+  }
+
+  streamAnswer(question: string, passages: RetrievedPassage[], signal: AbortSignal) {
+    return this.streaming.stream(question, passages, signal);
   }
 }

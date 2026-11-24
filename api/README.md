@@ -38,6 +38,8 @@ Imports run synchronously. Wait for the `201` response before treating a book as
 | --- | --- | --- |
 | POST | `/documents/upload` | Multipart `file`, required `title`, optional `edition`; returns book metadata and `chunk_count` |
 | POST | `/documents/import-url` | JSON `title`, `source_url`, optional `edition`; returns book metadata and `chunk_count` |
+| POST | `/documents/ask` | JSON `question`, optional `document_id`, optional `limit` (1-10, default 5); returns a Gemini answer with cited passages |
+| POST | `/documents/ask/stream` | Same input as `/documents/ask`; streams textbook chunks, answer text, and a validated final answer using SSE |
 | GET | `/documents` | Newest books first; optional `limit` (1–100, default 20), `offset` (default 0) |
 | GET | `/documents/:id` | One book, or 404 |
 | GET | `/documents/:id/chunks` | Chunks in reading order, without vectors; supports `limit` and `offset` |
@@ -66,7 +68,97 @@ curl -X POST http://localhost:3000/documents/search \
   -d '{"query":"How does DNA store genetic information?","limit":5}'
 ```
 
-Search uses cosine distance and returns `similarity = 1 - cosine_distance`, with the closest passages first. It always returns up to the requested number of neighbors, even for unrelated queries; similarity is not a calibrated confidence score. Queries above 254 MiniLM tokens are rejected rather than silently truncated. This is passage retrieval; chat answer generation is not implemented yet.
+Search uses cosine distance and returns `similarity = 1 - cosine_distance`, with the closest passages first. It always returns up to the requested number of neighbors, even for unrelated queries; similarity is not a calibrated confidence score. Queries above 254 MiniLM tokens are rejected rather than silently truncated. Use `/documents/ask` to generate an answer from the retrieved passages.
+
+## Gemini question answering
+
+Set these values in `api/.env` (or `.env` when working in the API directory), then restart the API:
+
+```dotenv
+GEMINI_API_KEY=your-google-ai-studio-api-key
+GEMINI_MODEL=gemini-3.1-flash-lite
+GEMINI_TIMEOUT_MS=30000
+GEMINI_STREAM_MAX_MS=120000
+```
+
+Create a key in [Google AI Studio](https://aistudio.google.com/api-keys). The backend uses the [Gemini generateContent REST API](https://ai.google.dev/api/generate-content) with [Gemini 3.1 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). No additional SDK is required. The key stays on the server. It is optional for startup, importing, and search; asking questions without a key returns `503`. Model and timeout have the defaults above; the timeout can range from 1,000 to 120,000 milliseconds.
+
+Ask about previously imported books from PowerShell:
+
+```powershell
+$body = @{ question = 'How does DNA store genetic information?'; limit = 5 } | ConvertTo-Json
+Invoke-RestMethod -Method Post -Uri 'http://localhost:3000/documents/ask' -ContentType 'application/json' -Body $body
+```
+
+Add `document_id` to restrict retrieval to a particular book; otherwise all imported books are searched. Questions must be nonempty, at most 2,000 characters, and fit within 254 MiniLM tokens. `limit` controls the number of passages sent to Gemini, with a default of 5 and a maximum of 10. Each request is independent; conversation history is not stored or sent.
+
+MiniLM embeds the question locally. The existing pgvector search retrieves the passages. The backend sends Gemini the question, passage content, book title and edition, section heading paths, and physical PDF page ranges. This transmits the retrieved excerpts to Google's Gemini API. Gemini is instructed to answer using only those passages, cite factual claims with `[1]`, `[2]`, etc., and report insufficient context for unrelated or unsupported questions. Question and passage text are treated as untrusted data in the system instructions.
+
+Example response (IDs abbreviated):
+
+```json
+{
+  "question": "How does DNA store genetic information?",
+  "answer": "DNA stores genetic information in its sequence of nucleotide bases. [1]",
+  "answerable": true,
+  "model": "gemini-3.1-flash-lite",
+  "sources": [{
+    "citation_id": 1,
+    "id": "chunk-uuid",
+    "document_id": "book-uuid",
+    "position": 0,
+    "title": "Biology",
+    "edition": "2nd",
+    "source_url": null,
+    "heading_path": ["Chapter 1", "1.1 DNA"],
+    "page_start": 12,
+    "page_end": 13,
+    "content": "DNA stores genetic information in its sequence of nucleotide bases.",
+    "similarity": 0.91
+  }]
+}
+```
+
+Sources contain only the cited passages, with metadata from the database. Citation IDs refer to retrieval order and can have gaps. No embedding vectors are returned. The backend validates the structured answer and checks that inline citation IDs match real retrieved sources. This validates source references; it does not independently prove every generated claim. Page numbers count physical PDF pages from 1; heading paths can be empty when a PDF has no usable bookmarks.
+
+An empty retrieval skips Gemini. Empty or insufficient context returns `200` with `answerable: false`, an explanatory answer, and `sources: []`. An unknown `document_id` returns `404`; invalid input returns `400`; missing Gemini configuration returns `503` before retrieval. If retrieval succeeds but Gemini fails, `/documents/ask` returns `200` with an extractive fallback described below. `generation_error` contains a safe error message and `statusCode`: `429` for quota/rate limits, `503` for server errors, `504` for timeouts, or `502` for rejected/invalid/incomplete answers. Import, embedding, database, and validation errors still fail normally.
+
+The fallback selects up to four complete textbook sentences by question-term overlap, favoring coverage of different question terms, and removes duplicate sentences from overlapping passages. It copies the wording with whitespace normalized, adds numbered source references, and returns:
+
+```json
+{
+  "status": "extractive_fallback",
+  "answer_type": "extractive",
+  "answer": "Gemini is unavailable. Relevant textbook excerpts:\n\n> An artery is a blood vessel that carries blood away from the heart. [2]",
+  "answerable": null,
+  "excerpts": [{ "text": "An artery is a blood vessel that carries blood away from the heart.", "citation_id": 2 }]
+}
+```
+
+The full response also includes `question`, the attempted Gemini `model`, cited `sources` with their original headings and page ranges, all retrieved `chunks`, and `generation_error`. This extraction runs locally and makes no additional model request. It is a set of relevant quotes, not a Gemini-generated explanation. `answerable` remains `null` because word overlap does not establish whether the excerpts fully answer the question. If no complete matching sentences are available, the status is `retrieval_only`, `answer_type` is `unavailable`, and `answer` contains an explanation instead of `null`; `excerpts` and `sources` are empty. Lexical matching and plural normalization currently target English. Irrelevant passages and cut-off final sentences are not used as excerpts.
+
+Upstream error bodies and API keys are not exposed. Temporary server errors (`500`, `502`, `503`, `504`) are retried up to twice with exponential backoff and jitter, within the same request deadline. Quota errors are not automatically retried; check the project's [active limits in Google AI Studio](https://aistudio.google.com/rate-limit) and billing. Retries cannot resolve persistent model overload or increase a quota.
+
+### Stream the answer in chunks
+
+Use `POST /documents/ask/stream` with the same JSON body. The response uses Server-Sent Events (`text/event-stream`). Unlike the normal endpoint, retrieved textbook chunks are sent as soon as retrieval finishes, before waiting for Gemini. Answer text follows as Gemini generates it through its [streamGenerateContent API](https://ai.google.dev/api/generate-content). Use a client that reads the response body incrementally; waiting for `response.json()` will not work for this route.
+
+From PowerShell, use `curl.exe -N` to show events without buffering:
+
+```powershell
+$body = @{ question = 'How does DNA store genetic information?'; limit = 3 } | ConvertTo-Json -Compress
+$body | curl.exe -N -X POST 'http://localhost:3000/documents/ask/stream' -H 'Content-Type: application/json' --data-binary '@-'
+```
+
+Events arrive in this order:
+
+1. `chunks`: `{ question, model, chunks }`. Every chunk includes `citation_id`, passage content, book metadata, heading path, and physical page range.
+2. `delta`: `{ text }`. Append each piece of answer text to the display. These pieces are provisional until the final event.
+3. `done`: the complete answer with validated citations and cited `sources`. Use this authoritative final answer, which can also report insufficient context.
+
+If Gemini fails, the stream ends with a `fallback` event instead of `done`. It contains the same extractive fallback response described above, including its `answer`, cited excerpts, all retrieved chunks, and `generation_error`. Replace provisional answer text with the fallback's answer and show its `answer_type`. A terminal `error` event signals an unexpected server failure after streaming began. Once SSE headers have been sent, the HTTP status remains `200`; clients must inspect the terminal event. Errors before streaming starts retain their normal HTTP status codes.
+
+For streaming, `GEMINI_TIMEOUT_MS` is the maximum idle time waiting for upstream data and resets when Gemini sends data. `GEMINI_STREAM_MAX_MS` caps the entire generation at 120,000 ms by default (configurable from 1,000 to 300,000 ms). The normal endpoint still uses `GEMINI_TIMEOUT_MS` as its total generation deadline. Streaming sends partial answers sooner, but a provider that sends no data can still time out; the textbook chunks remain available. Disconnecting the client cancels the upstream request. Keep-alive comments are sent every 15 seconds while the stream is open.
 
 ## Data model
 
@@ -153,7 +245,8 @@ DTO classes use class-validator decorators and class-transformer annotations as 
 ```powershell
 $env:RUN_MODEL_TESTS = '1'
 $env:RUN_DATABASE_TESTS = '1'
+$env:RUN_GEMINI_TESTS = '1'
 npm test
 ```
 
-Run migrations before the database integration check. It uses `DATABASE_URL` and rolls back its test records. The model check requires internet access on its first run and caches the downloaded model. Omit either variable to skip that integration.
+Run migrations before the database integration check. It uses `DATABASE_URL` and rolls back its test records. The model check requires internet access on its first run and caches the downloaded model. The Gemini check makes a real API request and requires `GEMINI_API_KEY`; it can consume API quota. Omit a variable to skip its integration. The regular tests exercise question answering, provenance, citation validation, HTTP input validation, and upstream failures with a stubbed Gemini API.
