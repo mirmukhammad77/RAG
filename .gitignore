@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.output/
+.vite/
+out/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+npm-debug.log*
+coverage/

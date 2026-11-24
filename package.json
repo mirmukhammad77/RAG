@@ -1,0 +1,20 @@
+{
+  "name": "rag",
+  "version": "0.0.1",
+  "private": true,
+  "description": "RAG application repository",
+  "scripts": {
+    "setup:api": "npm --prefix api ci",
+    "dev:api": "npm --prefix api run start:dev",
+    "build": "npm run build:api",
+    "build:api": "npm --prefix api run build",
+    "typecheck": "npm run typecheck:api",
+    "typecheck:api": "npm --prefix api run typecheck",
+    "start:api": "npm --prefix api run start:prod",
+    "migration:run:api": "npm --prefix api run migration:run",
+    "migration:status:api": "npm --prefix api run migration:status"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
