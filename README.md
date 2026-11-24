@@ -12,7 +12,7 @@ The applications keep their own dependencies, lockfiles, environment files, and 
 
 ## Backend
 
-Install Node.js 22 or newer, then run from the repository root:
+Install Node.js 22.13 or newer, then run from the repository root:
 
 ```sh
 npm run setup:api
@@ -25,6 +25,8 @@ npm run migration:run:api
 npm run dev:api
 ```
 
+For a local database with pgvector already installed, start Docker Desktop and run `docker compose up -d database`. This creates `rag` on port **5433**, keeping an existing PostgreSQL on 5432 available. Set `DATABASE_URL=postgresql://postgres:postgres@localhost:5433/rag` in `api/.env`, then run migrations. The Compose credentials are for local development.
+
 Root commands:
 
 | Command | Purpose |
@@ -33,11 +35,17 @@ Root commands:
 | `npm run dev:api` | Start the backend in watch mode |
 | `npm run build:api` | Build the backend |
 | `npm run typecheck:api` | Check backend types |
+| `npm test` | Build and test the backend |
+| `npm run db:studio` | Open Drizzle Studio's local database connection |
 | `npm run start:api` | Start the compiled backend |
 | `npm run migration:run:api` | Run database migrations |
 | `npm run migration:status:api` | Show migration status |
 
-The root `build` and `typecheck` commands currently target the API. See [api/README.md](api/README.md) for the backend structure, migration workflow, and additional commands.
+The backend accepts PDF uploads and direct PDF links without authentication, extracts page-aware passages, embeds them locally with MiniLM, and stores them in PostgreSQL with pgvector. It provides book browsing and semantic passage search. MiniLM downloads on first use and is cached locally; no embedding API key is required.
+
+The root `build` and `typecheck` commands currently target the API. See [api/README.md](api/README.md) for the API endpoints, data model, import limits, backend structure, and migration workflow.
+
+To browse the database, run `npm run db:studio` and open [Drizzle Studio](https://local.drizzle.studio). Keep the command running while using Studio. It connects to the database configured in `api/.env`; start that database and run migrations first.
 
 ## Frontend
 

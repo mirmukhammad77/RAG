@@ -10,11 +10,13 @@
     "build:api": "npm --prefix api run build",
     "typecheck": "npm run typecheck:api",
     "typecheck:api": "npm --prefix api run typecheck",
+    "test": "npm --prefix api test",
+    "db:studio": "npm --prefix api run db:studio",
     "start:api": "npm --prefix api run start:prod",
     "migration:run:api": "npm --prefix api run migration:run",
     "migration:status:api": "npm --prefix api run migration:status"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   }
 }

@@ -12,3 +12,4 @@ out/
 *.tsbuildinfo
 npm-debug.log*
 coverage/
+.cache/

@@ -8,15 +8,18 @@
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
     "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.cjs",
+    "db:studio": "drizzle-kit studio --host=127.0.0.1 --port=4983",
     "migration:generate": "sequelize-cli migration:generate",
     "migration:run": "sequelize-cli db:migrate",
     "migration:undo": "sequelize-cli db:migrate:undo",
     "migration:status": "sequelize-cli db:migrate:status"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "@nestjs/common": "^11.2.11",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.2.11",
@@ -25,6 +28,8 @@
     "class-validator": "^0.15.1",
     "dotenv": "^18.0.10",
     "drizzle-orm": "^0.45.4",
+    "ipaddr.js": "^2.5.0",
+    "pdfjs-dist": "^6.5.438",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
@@ -34,8 +39,11 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.24",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
     "@types/node": "^22.20.5",
     "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
     "typescript": "~5.9"
   }
 }
