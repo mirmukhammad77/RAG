@@ -1,0 +1,49 @@
+README.md
+  s_c397d38bdecd24::t_27f831e1a25a4f 7,11,52-69
+frontend/README.md
+  s_c397d38bdecd24::t_5a969d1e2beecd 3,5,7-90
+frontend/package-lock.json
+  s_c397d38bdecd24::t_29f58be83afa04 1-1988
+frontend/src/app/layout.tsx
+  s_c397d38bdecd24::t_704bc8c2a3d8e7 1-25
+frontend/src/features/books/pages/book-details-page.tsx
+  s_c397d38bdecd24::t_7fcb39c509e1f9 1-147
+frontend/src/features/books/pages/book-library-page.tsx
+  s_c397d38bdecd24::t_33e2542f1d94ad 1-87
+package.json
+  s_c397d38bdecd24::t_d8fc3a6745a570 8-12
+frontend/src/app/routes.tsx
+  s_c397d38bdecd24::t_f2074eb19966cb 1-17
+frontend/src/app/styles.css
+  s_c397d38bdecd24::t_1d0f3920681bf5 1-65
+frontend/src/features/books/api/books-api.ts
+  s_c397d38bdecd24::t_feb63b55603e04 1-59
+frontend/src/features/books/components/import-book-form.tsx
+  s_c397d38bdecd24::t_0755997716676a 1-233
+frontend/src/features/books/components/page-controls.tsx
+  s_c397d38bdecd24::t_121e1947e47f83 1-35
+frontend/src/features/books/hooks/use-books.ts
+  s_c397d38bdecd24::t_e52f6af3222037 1-49
+frontend/src/shared/components/ui/button.tsx
+  s_c397d38bdecd24::t_3591e0589ae5cd 1-52
+frontend/src/shared/components/ui/input.tsx
+  s_c397d38bdecd24::t_c20e7a1848bd72 1-16
+frontend/src/shared/lib/utils.ts
+  s_c397d38bdecd24::t_9248a4bdacbc89 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "e911bd153fc492ff620cc90bd937a30569dd74dc",
+  "prompts": {},
+  "sessions": {
+    "s_c397d38bdecd24": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21182-444b-7422-966d-2589c2870056",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    }
+  }
+}
