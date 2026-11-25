@@ -1,0 +1,43 @@
+README.md
+  s_7f10b9cf9797ec::t_b4d5c32fdb61cd 52
+frontend/README.md
+  s_6fd68b6d2fd09e::t_c074bdd51f34fe 3,54-59,61,74,81-90
+frontend/src/app/layout.tsx
+  s_c397d38bdecd24::t_c60922e99fe59a 18
+frontend/src/features/books/hooks/use-books.ts
+  s_c397d38bdecd24::t_0de6e8d0cc969c 2,10,13-22
+frontend/src/features/books/pages/book-details-page.tsx
+  s_c397d38bdecd24::t_a0a98d3aa0b365 7,83-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.18",
+  "base_commit_sha": "40ca4636a7362312d5b1b4d6e976c01a6d80c733",
+  "prompts": {},
+  "sessions": {
+    "s_6fd68b6d2fd09e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20cea-ce9a-74a1-9714-69744753ba13",
+        "model": "unknown"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    },
+    "s_7f10b9cf9797ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20cd7-0535-7631-847b-225cdd3177cc",
+        "model": "unknown"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    },
+    "s_c397d38bdecd24": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21182-444b-7422-966d-2589c2870056",
+        "model": "unknown"
+      },
+      "human_author": "Mirmuxammad <mirmuxammad@gmail.com>"
+    }
+  }
+}
