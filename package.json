@@ -5,6 +5,11 @@
   "description": "RAG application repository",
   "scripts": {
     "setup:api": "npm --prefix api ci",
+    "setup:frontend": "npm --prefix frontend ci",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "typecheck:frontend": "npm --prefix frontend run typecheck",
+    "preview:frontend": "npm --prefix frontend run preview",
     "dev:api": "npm --prefix api run start:dev",
     "build": "npm run build:api",
     "build:api": "npm --prefix api run build",

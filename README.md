@@ -4,11 +4,11 @@ Repository for the RAG application, with separate backend and frontend directori
 
 ```text
 api/          # NestJS backend, database migrations, and backend configuration
-frontend/     # Reserved for the frontend application
+frontend/     # React frontend, feature modules, and frontend configuration
 package.json  # Convenience commands for working from the repository root
 ```
 
-The applications keep their own dependencies, lockfiles, environment files, and build configuration. Install and run each application from its own directory, or use the root commands below for the API.
+The applications keep their own dependencies, lockfiles, environment files, and build configuration. Install and run each application from its own directory, or use the root commands below.
 
 ## Backend
 
@@ -49,4 +49,21 @@ To browse the database, run `npm run db:studio` and open [Drizzle Studio](https:
 
 ## Frontend
 
-The [frontend directory](frontend/README.md) is reserved for the frontend application. Its framework and tooling have not been selected yet. Add its package manifest, lockfile, configuration, and environment example inside `frontend/` when implementation begins.
+The [frontend](frontend/README.md) uses React with TypeScript, Vite, Tailwind CSS, TanStack Query, React Router, and shadcn/ui. Its feature-based architecture provides a dark card-grid book library, book details with extracted text in reading order, and a dialog for PDF uploads or direct PDF link imports. No frontend tests or test tooling are included.
+
+Use Node.js **22.22 or newer** for the frontend, then run from the repository root:
+
+```sh
+npm run setup:frontend
+npm run dev:frontend
+```
+
+Start the configured database and run `npm run dev:api` in another terminal. The frontend calls `/api`, which Vite proxies to the backend on port 3000 by default. See [frontend configuration](frontend/README.md#development) for environment overrides and production proxy requirements.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run setup:frontend` | Install the frontend's locked dependencies |
+| `npm run dev:frontend` | Start the Vite development server |
+| `npm run build:frontend` | Check frontend types and build for production |
+| `npm run typecheck:frontend` | Check frontend and Vite configuration types |
+| `npm run preview:frontend` | Preview the production build locally |
