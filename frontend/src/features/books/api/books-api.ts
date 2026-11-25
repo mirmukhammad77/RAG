@@ -1,8 +1,17 @@
 import { apiRequest } from '@/shared/api/client';
-import type { Book, BookImportInput, BookPage, BookPassage, ImportedBook } from '../types';
+import type { Book, BookImportInput, BookPage, BookPassage, ImportedBook, SearchPassage } from '../types';
 
 export const BOOKS_PAGE_SIZE = 20;
 export const MAX_BOOKS_PAGE = 50_000;
+
+export function searchBookPassages(id: string, query: string, signal?: AbortSignal): Promise<SearchPassage[]> {
+  return apiRequest<SearchPassage[]>('/documents/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_id: id, query }),
+    signal,
+  });
+}
 
 export async function getBooks(page: number, signal?: AbortSignal): Promise<BookPage<Book>> {
   const books = await apiRequest<Book[]>(

@@ -22,13 +22,10 @@ function errorMessage(payload: unknown, fallback: string): string {
   return fallback;
 }
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers = new Headers(options.headers);
-  headers.set('Accept', 'application/json');
-
+export async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
   let response: Response;
   try {
-    response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
+    response = await fetch(`${apiBaseUrl}${path}`, options);
   } catch (error) {
     if (options.signal?.aborted) throw error;
     throw new Error('Unable to reach the server. Check your connection and try again.');
@@ -42,6 +39,15 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
       : 'The request could not be completed. Please try again.';
     throw new ApiError(errorMessage(payload, fallback), response.status);
   }
+
+  return response;
+}
+
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set('Accept', 'application/json');
+  const response = await apiFetch(path, { ...options, headers });
+  const isJson = response.headers.get('content-type')?.includes('application/json');
 
   if (!isJson) throw new Error('The server returned an unexpected response. Please try again.');
   return response.json() as Promise<T>;

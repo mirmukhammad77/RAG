@@ -4,6 +4,7 @@ import { ApiError } from '@/shared/api/client';
 import { Button } from '@/shared/components/ui/button';
 import { BOOKS_PAGE_SIZE } from '../api/books-api';
 import { PageControls } from '../components/page-controls';
+import { BookPassageSearch } from '../components/book-passage-search';
 import { useBookPage } from '../hooks/use-book-page';
 import { useBook, useBookPassages } from '../hooks/use-books';
 import { formatImportDate, getSourceLink } from '../lib/format';
@@ -78,6 +79,8 @@ export function BookDetailsPage() {
               </div>
             </dl>
           </header>
+
+          <BookPassageSearch key={bookId} bookId={bookId} />
 
           <section aria-labelledby="extracted-text-heading" aria-busy={passages.isFetching} className="max-w-4xl space-y-6">
             <div className="space-y-2">

@@ -1,6 +1,6 @@
 # RAG frontend
 
-React and TypeScript frontend using Vite, Tailwind CSS, TanStack Query, React Router, and shadcn/ui. The dark book library provides a responsive card grid, book details with extracted text in reading order, and an Add book dialog for PDF uploads or direct PDF links.
+React and TypeScript frontend using Vite, Tailwind CSS, TanStack Query, React Router, and shadcn/ui. The dark book library provides a responsive card grid, book details with passage search and extracted text in reading order, and an Add book dialog for PDF uploads or direct PDF links. A separate Q&A page streams answers using passages retrieved from all books.
 
 ## Development
 
@@ -51,8 +51,14 @@ src/
       lib/                 # Book metadata formatting
       pages/               # Library and book details
       types.ts             # Backend response and import input types
+    questions/
+      api/                 # Streaming question requests across all books
+      components/          # Question form, answer, and source references
+      hooks/               # Streaming state and cancellation
+      pages/               # Separate Q&A page
+      types.ts             # Answer, fallback, and stream event types
   shared/
-    api/                   # Fetch client and API errors
+    api/                   # Fetch client, API errors, and SSE reader
     components/ui/         # shadcn/ui primitives
     lib/                   # Utilities shared across features
 ```
@@ -65,11 +71,22 @@ The `@/` alias resolves to `src/` in TypeScript and Vite. A single QueryClient i
 
 - `/` shows books newest first in a card grid, 20 per page.
 - `/books/:bookId` shows metadata and extracted passages in the order returned by the backend, 20 passages per page. Each passage retains its original PDF page range and headings. Passages may overlap; this is extracted text, not a PDF viewer.
+- Search this book submits to `POST /documents/search` with the opened book's `document_id`. It displays up to five passages, ordered by semantic similarity, with original PDF page ranges and headings. Search is separate from the reading-order pagination; Clear search removes the results. Similarity does not establish whether a passage answers the query. Queries must be nonempty, at most 2,000 characters, and fit within the backend's 254-token limit. Search errors are shown without automatic retries.
 - Both views keep pagination in `?page=2`, etc. The API does not return totals, so the frontend requests one additional record to determine whether Next is available.
 - Add book opens a native modal dialog with keyboard focus containment, an accessible title, and shared Button/Input primitives. Closing is disabled while an import is in progress.
 - Imports require a title and accept an optional edition. Uploads are limited to one nonempty PDF up to 50 MiB. URL imports need a direct public HTTP/HTTPS PDF link without credentials. The backend also enforces 2,000 pages and rejects PDFs without extractable text.
 - Importing waits for extraction and indexing to finish; large books or the first model download can take several minutes. There is no simulated progress percentage. The original uploaded PDF is not retained by the backend.
 - If an import response is interrupted, check the library before resubmitting. The server may have completed the import even if the browser did not receive confirmation.
+
+## Streaming Q&A
+
+Open Q&A in the main navigation (`/questions`). Questions search across all imported books: the frontend sends only `question` to `POST /documents/ask/stream`, without a `document_id` filter, and uses the backend's default of five passages. Each question is independent; this page does not store conversation history or send previous questions as context.
+
+The page appends answer text while generation runs. A completed answer replaces provisional text with the backend's validated answer. Numbered citations link to compact source references with book title, edition, headings, and physical PDF pages. Book titles link to book details. The Q&A page does not display retrieved passages; passage search remains available inside each book.
+
+If Gemini fails, the page replaces provisional text with the backend's extractive fallback or unavailable-answer message. Fallbacks are labeled as textbook excerpts when applicable. A stopped or interrupted stream labels any partial answer as incomplete. Stop and navigation away cancel the request. The frontend does not automatically retry questions; submitting again starts a fresh request.
+
+Questions must be nonempty, at most 2,000 characters, and fit within the backend's 254-token limit. Configure `GEMINI_API_KEY` on the backend for answers. Configuration and validation errors before streaming appear on the page; secrets stay on the server. Production proxies must allow incremental SSE responses and a long enough timeout for generation, in addition to supporting book imports.
 
 ## UI
 

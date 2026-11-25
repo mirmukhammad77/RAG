@@ -20,6 +20,13 @@ export interface ImportedBook extends Book {
   chunk_count: number;
 }
 
+export interface SearchPassage extends BookPassage {
+  title: string;
+  edition: string | null;
+  source_url: string | null;
+  similarity: number;
+}
+
 export type BookImportInput = {
   title: string;
   edition?: string;

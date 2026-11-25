@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getBook, getBookPassages, getBooks, importBook } from '../api/books-api';
+import { getBook, getBookPassages, getBooks, importBook, searchBookPassages } from '../api/books-api';
 
 export const bookKeys = {
   all: ['books'] as const,
@@ -7,7 +7,18 @@ export const bookKeys = {
   list: (page: number) => [...bookKeys.lists(), page] as const,
   detail: (id: string) => [...bookKeys.all, 'detail', id] as const,
   passages: (id: string, page: number) => [...bookKeys.detail(id), 'passages', page] as const,
+  search: (id: string, query: string) => [...bookKeys.detail(id), 'search', query] as const,
 };
+
+export function useBookPassageSearch(id: string, query: string) {
+  return useQuery({
+    queryKey: bookKeys.search(id, query),
+    queryFn: ({ signal }) => searchBookPassages(id, query, signal),
+    enabled: Boolean(id && query),
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+}
 
 export function useBooks(page: number) {
   return useQuery({

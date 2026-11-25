@@ -49,7 +49,7 @@ To browse the database, run `npm run db:studio` and open [Drizzle Studio](https:
 
 ## Frontend
 
-The [frontend](frontend/README.md) uses React with TypeScript, Vite, Tailwind CSS, TanStack Query, React Router, and shadcn/ui. Its feature-based architecture provides a dark card-grid book library, book details with extracted text in reading order, and a dialog for PDF uploads or direct PDF link imports. No frontend tests or test tooling are included.
+The [frontend](frontend/README.md) uses React with TypeScript, Vite, Tailwind CSS, TanStack Query, React Router, and shadcn/ui. Its feature-based architecture provides a dark card-grid book library, per-book passage search, book details with extracted text in reading order, and a dialog for PDF uploads or direct PDF link imports. A separate Q&A page streams answers across all imported books with source citations and compact source references. No frontend tests or test tooling are included.
 
 Use Node.js **22.22 or newer** for the frontend, then run from the repository root:
 

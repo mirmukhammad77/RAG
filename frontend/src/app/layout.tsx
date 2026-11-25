@@ -15,6 +15,7 @@ export function AppLayout() {
         <nav aria-label="Main navigation" className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-6">
           <Link to="/" className="rounded text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">RAG</Link>
           <NavLink to="/" end className="rounded text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-foreground">Library</NavLink>
+          <NavLink to="/questions" className="rounded text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring aria-[current=page]:text-foreground">Q&A</NavLink>
         </nav>
       </header>
       <main id="main-content" className="mx-auto max-w-6xl px-6 py-10 sm:py-12">
